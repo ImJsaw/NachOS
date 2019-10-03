@@ -3,5 +3,5 @@ main()
 	{
 		int	n;
 		for (n=9;n>5;n--)
-			PrintInt(n);
+			Example(n);//will print 10 9 8 7
 	}

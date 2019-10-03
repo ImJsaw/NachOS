@@ -1,0 +1,22 @@
+sudo apt install git csh g++
+
+//先創資料夾
+cd nachOS
+
+git init
+
+git remote add origin http://github.com/ImJsaw/nachOS.git
+
+git pull origin master
+
+sudo cp -r usr /
+//給權限
+sudo chmod 777 -R /usr
+
+cd code
+
+make
+
+cd userprog
+
+./nachos -e ../test/test1

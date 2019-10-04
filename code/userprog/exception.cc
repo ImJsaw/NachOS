@@ -68,7 +68,7 @@ ExceptionHandler(ExceptionType which)
 		case SC_Sleep://sys call sleep
 			val=kernel->machine->ReadRegister(4);//get arg
 			cout << "Wait for:" <<val  << "mSec"<< endl;
-			kernal->alarm->WaitUntil(val);
+			kernel->alarm->WaitUntil(val);
 			return;
 /*		case SC_Exec:
 			DEBUG(dbgAddr, "Exec\n");

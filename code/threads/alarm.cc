@@ -59,7 +59,7 @@ Alarm::CallBack()
     if(sleeping){
         if(awakeInterrupt >= curInterrupt){
             //thread awake
-            kernal->scheduler->ReadytoRun(sleepingThread);
+            kernel->scheduler->ReadyToRun(sleepingThread);
             DEBUG(dbgAll, "Awake.\n");
             sleeping = false;
         }

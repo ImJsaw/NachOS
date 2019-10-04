@@ -22,8 +22,8 @@
 
 Alarm::Alarm(bool doRandom)
 {
-    waiting = false;
-    curIntterrupt = 0;
+    sleeping = false;
+    curInterrupt = 0;
     timer = new Timer(doRandom, this);
 }
 
@@ -54,15 +54,14 @@ Alarm::CallBack()
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
 
-    curIntterrupt++;
+    curInterrupt++;
     //check time to awake
-    if(waiting){
-        remainTime--;
-        if(awakeInterrupt >= curIntterrupt){
+    if(sleeping){
+        if(awakeInterrupt >= curInterrupt){
             //thread awake
             kernal->scheduler->ReadytoRun(sleepingThread);
             DEBUG(dbgAll, "Awake.\n");
-            waiting = false;
+            sleeping = false;
         }
     }
 
@@ -86,5 +85,5 @@ Alarm::WaitUntil(int x)
     //back origin level
     kernel->interrupt->SetLevel(oriLevel);
     awakeInterrupt = curIntterrupt + x;
-    waiting = true;
+    sleeping = true;
 }

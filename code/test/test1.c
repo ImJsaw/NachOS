@@ -3,7 +3,7 @@ main()
 	{
 		int	n;
 		for (n=0;n<10;n++){
-			Example(n);
+			PrintInt(n);
 			Sleep(n*n*n*10);
 		}
 

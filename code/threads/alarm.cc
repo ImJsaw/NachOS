@@ -57,7 +57,7 @@ Alarm::CallBack()
     curInterrupt++;
     //check time to awake
     if(sleeping){
-        if(awakeInterrupt >= curInterrupt){
+        if(curInterrupt >= awakeInterrupt){
             //thread awake
             kernel->scheduler->ReadyToRun(sleepingThread);
             DEBUG(dbgAll, "Awake.\n");
@@ -82,6 +82,7 @@ Alarm::WaitUntil(int x)
     IntStatus oriLevel = kernel->interrupt->SetLevel(IntOff);
     //get current thread
     sleepingThread = kernel->currentThread;
+    sleepingThread->Sleep(true);//find this in thread func
     //back origin level
     kernel->interrupt->SetLevel(oriLevel);
     awakeInterrupt = curInterrupt + x;

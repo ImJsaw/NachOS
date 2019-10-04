@@ -2,6 +2,9 @@
 main()
 	{
 		int	n;
-		for (n=9;n>5;n--)
-			Example(n);//will print 10 9 8 7
+		for (n=0;n<10;n++){
+			Example(n);
+			Sleep(n*n*n*10);
+		}
+
 	}

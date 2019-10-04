@@ -138,13 +138,13 @@ PrintInt:
 	j       $31
 	.end    PrintInt
 
-	.globl  Example
-	.ent    Example
-Example:
-	addiu   $2,$0,SC_Example
+	.globl  Sleep
+	.ent    Sleep
+Sleep:
+	addiu   $2,$0,SC_Sleep
 	syscall
 	j       $31
-	.end    PrintInt
+	.end    Sleep
 
 /* dummy function to keep gcc happy */
         .globl  __main

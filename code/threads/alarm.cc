@@ -22,6 +22,8 @@
 
 Alarm::Alarm(bool doRandom)
 {
+    waiting = false;
+    curIntterrupt = 0;
     timer = new Timer(doRandom, this);
 }
 
@@ -51,13 +53,38 @@ Alarm::CallBack()
 {
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
+
+    curIntterrupt++;
+    //check time to awake
+    if(waiting){
+        remainTime--;
+        if(awakeInterrupt >= curIntterrupt){
+            //thread awake
+            kernal->scheduler->ReadytoRun(sleepingThread);
+            DEBUG(dbgAll, "Awake.\n");
+            waiting = false;
+        }
+    }
+
     
     if (status == IdleMode) {	// is it time to quit?
         if (!interrupt->AnyFutureInterrupts()) {
 	    timer->Disable();	// turn off the timer
-	}
+	    }
     } else {			// there's someone to preempt
 	interrupt->YieldOnReturn();
     }
 }
 
+void
+Alarm::WaitUntil(int x)
+{
+    //force turn off interrupt
+    IntStatus oriLevel = kernel->interrupt->SetLevel(IntOff);
+    //get current thread
+    sleepingThread = kernel->currentThread;
+    //back origin level
+    kernel->interrupt->SetLevel(oriLevel);
+    awakeInterrupt = curIntterrupt + x;
+    waiting = true;
+}

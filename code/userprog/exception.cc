@@ -65,9 +65,10 @@ ExceptionHandler(ExceptionType which)
 			val=kernel->machine->ReadRegister(4);
 			cout << "Print integer:" <<val << endl;
 			return;
-		case SC_Example://test eample
+		case SC_Sleep://sys call sleep
 			val=kernel->machine->ReadRegister(4);//get arg
-			cout << "Print integer exam:" <<val+1 << endl;
+			cout << "Wait for:" <<val  << "mSec"<< endl;
+			kernal->alarm->WaitUntil(val);
 			return;
 /*		case SC_Exec:
 			DEBUG(dbgAddr, "Exec\n");

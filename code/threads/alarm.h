@@ -36,6 +36,15 @@ class Alarm : public CallBackObj {
 
     void CallBack();		// called when the hardware
 				// timer generates an interrupt
+    
+
+    bool sleeping;
+    /** log cur time **/
+    int curInterrupt;  
+    /** time to awake **/
+    int awakeInterrupt;
+    /** save the sleeping thread **/
+    Thread* sleepingThread;
 };
 
 #endif // ALARM_H

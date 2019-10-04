@@ -84,6 +84,6 @@ Alarm::WaitUntil(int x)
     sleepingThread = kernel->currentThread;
     //back origin level
     kernel->interrupt->SetLevel(oriLevel);
-    awakeInterrupt = curIntterrupt + x;
+    awakeInterrupt = curInterrupt + x;
     sleeping = true;
 }

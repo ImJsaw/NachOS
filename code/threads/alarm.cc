@@ -64,7 +64,6 @@ Alarm::CallBack()
             sleeping = false;
         }
     }
-
     //do not quit if sleeping
     if (status == IdleMode && !sleeping) {	// is it time to quit?
         DEBUG(dbgDev, "idle, check future interrupt.\n");
@@ -83,11 +82,16 @@ Alarm::WaitUntil(int x)
 {
     //force turn off interrupt
     IntStatus oriLevel = kernel->interrupt->SetLevel(IntOff);
-    //get current thread
-    sleepingThread = kernel->currentThread;
-    sleepingThread->Sleep(true);//find this in thread func
-    //back origin level
-    kernel->interrupt->SetLevel(oriLevel);
+    DEBUG(dbgDev, "turn off interrupt.\n");
+    //set awake time
     awakeInterrupt = curInterrupt + x;
     sleeping = true;
+    DEBUG(dbgDev, "set awake.\n");
+    //get current thread
+    sleepingThread = kernel->currentThread;
+    DEBUG(dbgDev, "before thtread sleeping.\n");
+    sleepingThread->Sleep(false);
+    DEBUG(dbgDev, "thread sleeping.\n");
+    //back origin level
+    kernel->interrupt->SetLevel(oriLevel);
 }

@@ -60,18 +60,21 @@ Alarm::CallBack()
         if(curInterrupt >= awakeInterrupt){
             //thread awake
             kernel->scheduler->ReadyToRun(sleepingThread);
-            DEBUG(dbgAll, "Awake.\n");
+            DEBUG(dbgDev, "Awake.\n");
             sleeping = false;
         }
     }
 
-    
-    if (status == IdleMode) {	// is it time to quit?
+    //do not quit if sleeping
+    if (status == IdleMode && !sleeping) {	// is it time to quit?
+        DEBUG(dbgDev, "idle, check future interrupt.\n");
         if (!interrupt->AnyFutureInterrupts()) {
+            DEBUG(dbgDev, "quit.\n");
 	    timer->Disable();	// turn off the timer
 	    }
     } else {			// there's someone to preempt
-	interrupt->YieldOnReturn();
+        DEBUG(dbgDev, "preemp or sleeping.\n");
+	    interrupt->YieldOnReturn();
     }
 }
 

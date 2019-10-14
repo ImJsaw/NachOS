@@ -55,15 +55,6 @@ Alarm::CallBack()
     MachineStatus status = interrupt->getStatus();
 
     curInterrupt++;
-    //check time to awake
-    if(sleeping){
-        if(curInterrupt >= awakeInterrupt){
-            //thread awake
-            kernel->scheduler->ReadyToRun(sleepingThread);
-            DEBUG(dbgDev, "Awake.\n");
-            sleeping = false;
-        }
-    }
     //do not quit if sleeping
     if (status == IdleMode && !sleeping) {	// is it time to quit?
         DEBUG(dbgDev, "idle, check future interrupt.\n");
@@ -71,6 +62,14 @@ Alarm::CallBack()
             DEBUG(dbgDev, "quit.\n");
 	    timer->Disable();	// turn off the timer
 	    }
+    //check time to awake
+    } else if (sleeping){
+        if(curInterrupt >= awakeInterrupt){
+            //thread awake
+            kernel->scheduler->ReadyToRun(sleepingThread);
+            DEBUG(dbgDev, "Awake.\n");
+            sleeping = false;
+        }
     } else {			// there's someone to preempt
         DEBUG(dbgDev, "preemp or sleeping.\n");
 	    interrupt->YieldOnReturn();

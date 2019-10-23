@@ -54,6 +54,8 @@ Alarm::CallBack()
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
 
+	kernel->currentThread->setPriority(kernel->currentThread->getPriority() - 1);
+	
     curInterrupt++;
     //do not quit if sleeping
     if (status == IdleMode && !sleeping) {	// is it time to quit?
@@ -72,7 +74,10 @@ Alarm::CallBack()
         }
     } else {			// there's someone to preempt
         DEBUG(dbgDev, "preemp or sleeping.\n");
-	    interrupt->YieldOnReturn();
+	    if(kernel->scheduler->getSchedulerType() == RR ||
+            kernel->scheduler->getSchedulerType() == Priority ) {
+			interrupt->YieldOnReturn();
+		}
     }
 }
 

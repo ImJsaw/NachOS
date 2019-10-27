@@ -33,6 +33,16 @@ int PriorityCompare(Thread *a, Thread *b) {
 }
 
 //----------------------------------------------------------------------
+// Compare job length
+//----------------------------------------------------------------------
+int JobLengthCompare(Thread *a, Thread *b) {
+    if(a->getBurstTime() == b->getBurstTime())
+        return 0;
+    // shorst job first
+    return a->getBurstTime() < b->getBurstTime() ? 1 : -1;
+}
+
+//----------------------------------------------------------------------
 // Scheduler::Scheduler
 // 	Initialize the list of ready but not running threads.
 //	Initially, no ready threads.
@@ -50,13 +60,15 @@ Scheduler::Scheduler(SchedulerType type){
         	readyList = new List<Thread *>;
         	break;
     	case SJF:
-			/* todo */
+			readyList = new SortedList<Thread *>(JobLengthCompare);
         	break;
     	case Priority:
 			readyList = new SortedList<Thread *>(PriorityCompare);
         	break;
     	case FIFO:
-			/* todo */
+        //also no need to sort
+			readyList = new List<Thread *>;
+        	break;
 		break;
    	}
 	toBeDestroyed = NULL;

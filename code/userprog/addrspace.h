@@ -20,26 +20,28 @@
 #define UserStackSize		1024 	// increase this as necessary!
 
 class AddrSpace {
-  public:
-    AddrSpace();			// Create an address space.
-    ~AddrSpace();			// De-allocate an address space
+public:
+	AddrSpace();			// Create an address space.
+	~AddrSpace();			// De-allocate an address space
 
-    void Execute(char *fileName);	// Run the the program
+	static bool usedPhyPage[NumPhysPages];
+
+	void Execute(char *fileName);	// Run the the program
 					// stored in the file "executable"
 
-    void SaveState();			// Save/restore address space-specific
-    void RestoreState();		// info on a context switch 
+	void SaveState();			// Save/restore address space-specific
+	void RestoreState();		// info on a context switch 
 
-  private:
-    TranslationEntry *pageTable;	// Assume linear page table translation
+private:
+	TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
-    unsigned int numPages;		// Number of pages in the virtual 
+	unsigned int numPages;		// Number of pages in the virtual 
 					// address space
 
-    bool Load(char *fileName);		// Load the program into memory
+	bool Load(char *fileName);		// Load the program into memory
 					// return false if not found
 
-    void InitRegisters();		// Initialize user-level CPU registers,
+	void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
 
 };

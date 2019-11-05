@@ -87,6 +87,12 @@ Alarm::WaitUntil(int x)
     //force turn off interrupt
     IntStatus oriLevel = kernel->interrupt->SetLevel(IntOff);
     DEBUG(dbgDev, "turn off interrupt.\n");
+
+    Thread* t = kernel->currentThread;
+    int worktime = kernel->stats->userTicks - t->getStartTime();
+    t->setBurstTime(t->getBurstTime() + worktime);
+    t->setStartTime(kernel->stats->userTicks);
+
     //set awake time
     awakeInterrupt = curInterrupt + x;
     sleeping = true;

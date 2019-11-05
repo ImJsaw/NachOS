@@ -105,6 +105,8 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
 	void setBurstTime(int t)	{burstTime = t;}
     int getBurstTime()		{return burstTime;}
+    void setStartTime(int t)    {startTime = t;}
+    int getStartTime()      {return startTime;}
     void setPriority(int t)	{priority = t;}
     int getPriority()		{return priority;}
     char* getName() { return (name); }
@@ -121,6 +123,7 @@ class Thread {
     char* name;
 	int burstTime;
     int priority;	
+    int startTime;
 
     void StackAllocate(VoidFunctionPtr func, void *arg);
     				// Allocate a stack for thread.

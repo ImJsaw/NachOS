@@ -10,6 +10,7 @@
 #include "synchconsole.h"
 #include "userkernel.h"
 #include "synchdisk.h"
+#include <stdlib.h>
 
 //----------------------------------------------------------------------
 // UserProgKernel::UserProgKernel
@@ -44,7 +45,7 @@ UserProgKernel::UserProgKernel(int argc, char **argv)
 		cout << "	./nachos -e file1 -e file2 : executing file1 and file2."  << endl;
 	}
 	else if (strcmp(argv[i], "-prio") == 0) {
-		prio[execfileNum] = argv[i + 1]
+		prio[execfileNum] = atoi(argv[i + 1]);
 		cout << execfileNum << "'s prio: " << argv[i + 1] << endl;
 	}
     }
@@ -90,6 +91,12 @@ void
 ForkExecute(Thread *t)
 {
 	t->space->Execute(t->getName());
+	while (t->getBurstTime() > 0) {
+        t->setBurstTime(t->getBurstTime() - 1);
+		printf("%s: %d\n", t->getName(), t->getBurstTime());
+        //kernel->currentThread->Yield();
+		interrupt->OneTick();
+    } 
 }
 
 void
@@ -101,7 +108,7 @@ UserProgKernel::Run()
 		{
 		t[n] = new Thread(execfile[n]);
 		t[n]->space = new AddrSpace();
-		t[n]->setPriority(prio[n]); 
+		t[n]->setPriority(prio[n]);
 		t[n]->Fork((VoidFunctionPtr) &ForkExecute, (void *)t[n]);
 		cout << "Thread " << execfile[n] << " is executing." << endl;
 		}

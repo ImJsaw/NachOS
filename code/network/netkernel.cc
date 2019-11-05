@@ -48,14 +48,8 @@ NetKernel::NetKernel(int argc, char **argv) : UserProgKernel(argc, argv)
 // 	Initialize Nachos global data structures.
 //----------------------------------------------------------------------
 
-void 
-NetKernel::Initialize()
-{
-    Initialize(RR);
-}
-
 void
-NetKernel::Initialize(SchedulerType type)
+NetKernel::Initialize()
 {
     UserProgKernel::Initialize(type);	// init other kernel data structs
 

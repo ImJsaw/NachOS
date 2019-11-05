@@ -91,12 +91,12 @@ void
 ForkExecute(Thread *t)
 {
 	t->space->Execute(t->getName());
-	while (t->getBurstTime() > 0) {
-        t->setBurstTime(t->getBurstTime() - 1);
-		printf("%s: %d\n", t->getName(), t->getBurstTime());
-        //kernel->currentThread->Yield();
-		interrupt->OneTick();
-    } 
+	// while (t->getBurstTime() > 0) {
+ //        t->setBurstTime(t->getBurstTime() - 1);
+	// 	printf("%s: %d\n", t->getName(), t->getBurstTime());
+ //        //kernel->currentThread->Yield();
+	// 	interrupt->OneTick();
+ //    } 
 }
 
 void

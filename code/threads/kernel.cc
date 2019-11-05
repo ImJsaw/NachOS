@@ -68,7 +68,7 @@ ThreadedKernel::Initialize()
     // object to save its state. 
     currentThread = new Thread("main");		
     currentThread->setStatus(RUNNING);
-    currentThread->setStartTime(stats->uesrTicks);
+    // currentThread->setStartTime(stats->uesrTicks);
 
     interrupt->Enable();
 }

@@ -43,6 +43,10 @@ UserProgKernel::UserProgKernel(int argc, char **argv)
 		cout << "	./nachos -s : Print machine status during the machine is on." << endl;
 		cout << "	./nachos -e file1 -e file2 : executing file1 and file2."  << endl;
 	}
+	else if (strcmp(argv[i], "-prio") == 0) {
+		prio[execfileNum] = argv[i + 1]
+		cout << execfileNum << "'s prio: " << argv[i + 1] << endl;
+	}
     }
 }
 
@@ -97,6 +101,7 @@ UserProgKernel::Run()
 		{
 		t[n] = new Thread(execfile[n]);
 		t[n]->space = new AddrSpace();
+		t[n]->setPriority(prio[n]); 
 		t[n]->Fork((VoidFunctionPtr) &ForkExecute, (void *)t[n]);
 		cout << "Thread " << execfile[n] << " is executing." << endl;
 		}

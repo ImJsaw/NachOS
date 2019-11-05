@@ -40,7 +40,7 @@ class ThreadedKernel {
     Scheduler *scheduler;	// the ready list
     Interrupt *interrupt;	// interrupt status
     Statistics *stats;		// performance metrics
-    Alarm *alarm;		// the software alarm clock    
+    Alarm *alarm;		// the software alarm clock
 
   private:
     bool randomSlice;		// enable pseudo-random time slicing

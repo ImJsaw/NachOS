@@ -25,6 +25,7 @@ public:
 	~AddrSpace();			// De-allocate an address space
 
 	static bool usedPhyPage[NumPhysPages];
+	static bool usedVirPage[NumVirPages];
 
 	void Execute(char *fileName);	// Run the the program
 					// stored in the file "executable"

@@ -21,7 +21,8 @@
 #include "machine.h"
 #include "noff.h"
 
-bool AddrSpace::usedPhyPage[NumPhysPages] = { 0 };
+bool AddrSpace::usedPhyPage[NumPhysPages] = { false };
+bool AddrSpace::usedVirPage[NumVirPages] = { false };
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -55,17 +56,18 @@ SwapHeader(NoffHeader *noffH)
 
 AddrSpace::AddrSpace()
 {
-	pageTable = new TranslationEntry[NumPhysPages];
-	for (unsigned int i = 0; i < NumPhysPages; i++) {
-		pageTable[i].virtualPage = i;	// for now, virt page # = phys page #
-		pageTable[i].physicalPage = i;
-		//	pageTable[i].physicalPage = 0;
-		pageTable[i].valid = TRUE;
-		//	pageTable[i].valid = FALSE;
-		pageTable[i].use = FALSE;
-		pageTable[i].dirty = FALSE;
-		pageTable[i].readOnly = FALSE;
-	}
+	//use virtual mem , no need init
+	// pageTable = new TranslationEntry[NumPhysPages];
+	// for (unsigned int i = 0; i < NumPhysPages; i++) {
+	// 	pageTable[i].virtualPage = i;	// for now, virt page # = phys page #
+	// 	pageTable[i].physicalPage = i;
+	// 	//	pageTable[i].physicalPage = 0;
+	// 	pageTable[i].valid = TRUE;
+	// 	//	pageTable[i].valid = FALSE;
+	// 	pageTable[i].use = FALSE;
+	// 	pageTable[i].dirty = FALSE;
+	// 	pageTable[i].readOnly = FALSE;
+	// }
 
 	// zero out the entire address space
 //    bzero(kernel->machine->mainMemory, MemorySize);
@@ -117,51 +119,68 @@ AddrSpace::Load(char *fileName)
 					// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
 	//	cout << "number of pages of " << fileName<< " is "<<numPages<<endl;
-
-	// added
-	pageTable = new TranslationEntry[numPages];
-	for (unsigned int i = 0, j = 0; i < numPages; i++) {
-		pageTable[i].virtualPage = i;
-		while (j < NumPhysPages && AddrSpace::usedPhyPage[j] == true)
-			j++;
-		AddrSpace::usedPhyPage[j] = true;
-		pageTable[i].physicalPage = j;
-		pageTable[i].valid = true;
-		pageTable[i].use = false;
-		pageTable[i].dirty = false;
-		pageTable[i].readOnly = false;
-	}
-	// added
-
 	size = numPages * PageSize;
 
+	// no need to check remain after using virtual address
+	/*
 	ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
 
 	DEBUG(dbgAddr, "Initializing address space: " << numPages << ", " << size);
+	*/
+	pageTable = new TranslationEntry[numPages];
 
 	// then, copy in the code and data segments into memory
 	if (noffH.code.size > 0) {
-		DEBUG(dbgAddr, "Initializing code segment.");
-		DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
+		// DEBUG(dbgAddr, "Initializing code segment.");
+		// DEBUG(dbgAddr, noffH.code.virtualAddr << ", " << noffH.code.size);
 		
-		// changed
-		executable->ReadAt(
-			&(kernel->machine->mainMemory[pageTable[noffH.code.virtualAddr / PageSize].physicalPage * PageSize + (noffH.code.virtualAddr%PageSize)]),
-			noffH.code.size, noffH.code.inFileAddr);
-		// changed
+		for (unsigned int curPage = 0, curPhyPage, curVirPage; curPage < numPages; curPage++) {
+			//find useable page
+			curPhyPage = 0;
+			while (curPhyPage < NumPhysPages && AddrSpace::usedPhyPage[curPhyPage]) curPhyPage++;
+			//find useable physical mem
+			if(curPhyPage < NumPhysPages){
+				DEBUG(dbgAddr, "Initializing data segment" << curPage << ", using physical " << curPhyPage);
+				AddrSpace::usedPhyPage[curPhyPage] = true;
+				//clear this page
+				bzero(&kernel->machine->mainMemory[curPhyPage * PageSize], PageSize);
+				pageTable[curPage].physicalPage = curPhyPage;
+				pageTable[curPage].valid = true;
+				pageTable[curPage].use = false;
+				pageTable[curPage].dirty = false;
+				pageTable[curPage].readOnly = false;
+				executable->ReadAt( &(kernel->machine->mainMemory[curPhyPage * PageSize]), 
+									PageSize, noffH.code.inFileAddr + (curPage * PageSize));
+			}
+			//use virtual mem
+			else{
+				DEBUG(dbgAddr, "Initializing data segment" << curPage << ", using virtual " << curVirPage);
+				char *buffer;
+				buffer = new char[PageSize];
+				curVirPage = 0;
+				while (AddrSpace::usedVirPage[curVirPage]) curVirPage++;
+				////what if no virtual page valiable during load?////////////////////////
+				AddrSpace::usedVirPage[curVirPage] = true;
+				pageTable[curPage].virtualPage = curVirPage;
+				pageTable[curPage].valid = false;
+				pageTable[curPage].use = false;
+				pageTable[curPage].dirty = false;
+				pageTable[curPage].readOnly = false;
+				executable->ReadAt( buffer, PageSize, noffH.code.inFileAddr + (curPage * PageSize));
+				//write data to disk
+				kernel->virtualDisk->WriteSector(curVirPage, buffer);
+			}
+		}
 
 	}
 	if (noffH.initData.size > 0) {
 		DEBUG(dbgAddr, "Initializing data segment.");
 		DEBUG(dbgAddr, noffH.initData.virtualAddr << ", " << noffH.initData.size);
-		// changed
-		executable->ReadAt(
-			&(kernel->machine->mainMemory[pageTable[noffH.initData.virtualAddr / PageSize].physicalPage * PageSize + (noffH.code.virtualAddr%PageSize)]),
-			noffH.initData.size, noffH.initData.inFileAddr);
-		// changed
+		executable->ReadAt(&(kernel->machine->mainMemory[noffH.initData.virtualAddr]),
+							noffH.initData.size, noffH.initData.inFileAddr);
 	}
 
 	delete executable;			// close file

@@ -27,6 +27,11 @@
 // In addition, there are some extra bits for access control (valid and 
 // read-only) and some bits for usage information (use and dirty).
 
+enum PageReplaceType {
+  FIFO,
+	LRU
+};
+
 class TranslationEntry {
   public:
     unsigned int virtualPage;  	// The page number in virtual memory.

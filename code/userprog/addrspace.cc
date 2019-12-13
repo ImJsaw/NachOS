@@ -144,6 +144,8 @@ AddrSpace::Load(char *fileName)
 			//find useable physical mem
 			if(curPhyPage < NumPhysPages){
 				DEBUG(dbgAddr, "Initializing data segment" << curPage << ", using physical " << curPhyPage);
+				//log the page at machine for select victim
+				kernel->machine->mainPage[curPhyPage] = &pageTable[curPage];
 				AddrSpace::usedPhyPage[curPhyPage] = true;
 				//clear this page
 				bzero(&kernel->machine->mainMemory[curPhyPage * PageSize], PageSize);

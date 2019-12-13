@@ -188,6 +188,9 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     unsigned int vpn, offset;
     TranslationEntry *entry;
     unsigned int pageFrame;
+	unsigned int curPhyPage, victim;
+	int fifo = 0;
+	PageReplaceType pageType = FIFO;
 
     DEBUG(dbgAddr, "\tTranslate " << virtAddr << (writing ? " , write" : " , read"));
 
@@ -212,7 +215,59 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	    return AddressErrorException;
 	} else if (!pageTable[vpn].valid) {
 	    DEBUG(dbgAddr, "Invalid virtual page # " << virtAddr);
-	    return PageFaultException;
+		//implement here easier than exception handle...
+
+		kernel->stats->numPageFaults++;
+		curPhyPage = 0;
+		while (curPhyPage < NumPhysPages && AddrSpace::usedPhyPage[curPhyPage]) curPhyPage++;
+
+		//find useable physical mem
+		if(curPhyPage < NumPhysPages){
+			char *buffer;
+			buffer = new char[PageSize];
+			//log the page at machine for select victim
+			kernel->machine->mainPage[curPhyPage] = &pageTable[vpn];
+
+			pageTable[vpn].physicalPage = curPhyPage;
+			pageTable[vpn].valid = true;
+			//load into mem
+			kernel->virtualDisk->ReadSector(pageTable[vpn].virtualPage, buffer);
+			bcopy( buffer, &mainMemory[curPhyPage * PageSize], PageSize);
+		}
+		//select victim
+		else{
+			char *buffer1, *buffer2;
+			buffer1 = new char[PageSize];
+			buffer2 = new char[PageSize];
+
+			//get victim
+			switch(pageType){
+				case FIFO:
+					victim = fifo % NumPhysPages;
+					fifo++;
+					break;
+				case LRU:
+					break;
+				default:
+					cerr << "Unexpected page replace type " << pageType << "\n";
+					break;
+			}
+
+			printf("victim : %u", victim);
+			//swap victim & virtual page data
+			bcopy( &mainMemory[victim * PageSize], buffer1, PageSize);
+			kernel->virtualDisk->ReadSector(pageTable[vpn].virtualPage, buffer2);
+			kernel->virtualDisk->WriteSector(pageTable[vpn].virtualPage, buffer1);
+			bcopy( buffer2, &mainMemory[victim * PageSize], PageSize);
+			//update pageTable & mainPage
+			pageTable[vpn].physicalPage = victim;
+			pageTable[vpn.valid = true;]
+			kernel->machine->mainPage[victim]->virtualPage = pageTable[vpn].virtualPage;
+			kernel->machine->mainPage[victim]->valid = false;
+			kernel->machine->mainPage[victim] = &pageTable[vpn];
+		}
+		
+	    // return PageFaultException;
 	}
 	entry = &pageTable[vpn];
     } else {

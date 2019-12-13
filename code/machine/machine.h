@@ -133,6 +133,8 @@ class Machine {
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
     bool ReadMem(int addr, int size, int* value);
+	//record current valid pages
+	TranslationEntry *mainPage[NumPhysPages];
   private:
 
 // Routines internal to the machine simulation -- DO NOT call these directly

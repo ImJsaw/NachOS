@@ -261,7 +261,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 			bcopy( buffer2, &mainMemory[victim * PageSize], PageSize);
 			//update pageTable & mainPage
 			pageTable[vpn].physicalPage = victim;
-			pageTable[vpn.valid = true;]
+			pageTable[vpn].valid = true;
 			kernel->machine->mainPage[victim]->virtualPage = pageTable[vpn].virtualPage;
 			kernel->machine->mainPage[victim]->valid = false;
 			kernel->machine->mainPage[victim] = &pageTable[vpn];

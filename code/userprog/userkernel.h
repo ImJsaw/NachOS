@@ -20,31 +20,29 @@ class SynchDisk;
 class UserProgKernel : public ThreadedKernel {
   public:
     UserProgKernel(int argc, char **argv);
-				// Interpret command line arguments
-    ~UserProgKernel();		// deallocate the kernel
+                // Interpret command line arguments
+    ~UserProgKernel();      // deallocate the kernel
 
-    void Initialize();		// initialize the kernel 
+    void Initialize();      // initialize the kernel 
 
-    void Run();			// do kernel stuff 
+    void Run();         // do kernel stuff 
 
-    void SelfTest();		// test whether kernel is working
-
-    SynchDisk *virtualDisk;
-
+    void SelfTest();        // test whether kernel is working
+    
+    SynchDisk *vm_Disk;     //to save the page which the main memoey don't have enough memory to save
 // These are public for notational convenience.
     Machine *machine;
     FileSystem *fileSystem;
-
+    bool debugUserProg;
 #ifdef FILESYS
     SynchDisk *synchDisk;
 #endif // FILESYS
-
+   
   private:
-    bool debugUserProg;		// single step user program
-	Thread* t[10];
-	char*	execfile[10];
-	int	execfileNum;
-    int prio[10];
+        Thread* t[10];  // single step user program
+    
+    char*   execfile[10];
+    int execfileNum;
 };
 
 #endif //USERKERNEL_H

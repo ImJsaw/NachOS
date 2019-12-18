@@ -188,9 +188,11 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     unsigned int vpn, offset;
     TranslationEntry *entry;
     unsigned int pageFrame;
-	unsigned int curPhyPage, victim;
-	int fifo = 0;
-	PageReplaceType pageType = FIFO;
+
+    int victim;///find the page victim
+    int fifo;//For fifo
+
+    unsigned int j;
 
     DEBUG(dbgAddr, "\tTranslate " << virtAddr << (writing ? " , write" : " , read"));
 
@@ -214,61 +216,98 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	    DEBUG(dbgAddr, "Illegal virtual page # " << virtAddr);
 	    return AddressErrorException;
 	} else if (!pageTable[vpn].valid) {
-	    DEBUG(dbgAddr, "Invalid virtual page # " << virtAddr);
-		//implement here easier than exception handle...
+          //hanle page fault
+	   // DEBUG(dbgAddr, "Invalid virtual page # " << virtAddr);
+          printf("page fault\n");
+          kernel->stats->numPageFaults++;
+          j=0;
+          while(kernel->machine->usedPhyPage[j]!=FALSE&&j<NumPhysPages){j++;}
+                 //add the page into the main memory if the main memory isn't full
+               
+              
+                 if(j<NumPhysPages){ 
+                      char *buf; //save page temporary
+                      buf = new char[PageSize];
+                  kernel->machine->usedPhyPage[j]=TRUE;
+                  kernel->machine->PhyPageName[j]=pageTable[vpn].ID;
+              
+                  kernel->machine->main_tab[j]=&pageTable[vpn];
+                  pageTable[vpn].physicalPage = j;
+	              pageTable[vpn].valid = TRUE;
+	             // pageTable[vpn].count++; //for LRU
+	             // pageTable[vpn].reference_bit = FALSE; //for second chance algo.
+                 
+                  kernel->vm_Disk->ReadSector(pageTable[vpn].virtualPage, buf);
+                  bcopy(buf,&mainMemory[j*PageSize],PageSize);
+                    
+                 }
+                else{
+                         char *buf_1;
+                         buf_1 = new char[PageSize];
+                         char *buf_2;
+                         buf_2 = new char[PageSize];
+                     
+                     //Random
+                     // victim = (rand()%32);
+                     
+                     //Fifo
+                    victim = fifo%32;
+                     
+                     //LRU
+                     /*
+                     int min = pageTable[0].count;
+                     victim=0;
+                     for(int ccount=0;ccount<32;ccount++){
+                             if(min > pageTable[ccount].count){
+                                    min = pageTable[ccount].count;
+                                    victim = ccount;
+                                    
+                             }
+                     } 
+                     pageTable[victim].count++;  
+                     */
+                     
+                     //Second chance
+                     /* 
+                     victim = fifo % 32;
+                     while(pageTable[victim].reference_bit == true)
+                                  fifo++;      //find reference_bit is FALSE,and it can be replaced
+                    
+                     pageTable[victim].reference_bit = true;        //not be replaced
+                     */                                          
+                     
+                     
+                     printf("Number = %d page swap out\n",victim);
 
-		kernel->stats->numPageFaults++;
-		curPhyPage = 0;
-		while (curPhyPage < NumPhysPages && AddrSpace::usedPhyPage[curPhyPage]) curPhyPage++;
+                     //get the page victm and save in the disk
+                     bcopy(&mainMemory[victim*PageSize],buf_1,PageSize);
+                     kernel->vm_Disk->ReadSector(pageTable[vpn].virtualPage, buf_2);
+                     bcopy(buf_2,&mainMemory[victim*PageSize],PageSize);
+                     kernel->vm_Disk->WriteSector(pageTable[vpn].virtualPage,buf_1);
+                     
+                     main_tab[victim]->virtualPage=pageTable[vpn].virtualPage;
+                     main_tab[victim]->valid=FALSE;
+        
+                     
+                     
+                     //save the page into the main memory
+                  
 
-		//find useable physical mem
-		if(curPhyPage < NumPhysPages){
-			char *buffer;
-			buffer = new char[PageSize];
-			//log the page at machine for select victim
-			kernel->machine->mainPage[curPhyPage] = &pageTable[vpn];
+                     pageTable[vpn].valid = TRUE;
+                     pageTable[vpn].physicalPage=victim;
+                     kernel->machine->PhyPageName[victim]=pageTable[vpn].ID;
+                     main_tab[victim]=&pageTable[vpn];
+ 		            // fifo = fifo + 1;               //for fifo
+         	         printf("page replacement finished\n");
+               
+                
+                    
 
-			pageTable[vpn].physicalPage = curPhyPage;
-			pageTable[vpn].valid = true;
-			//load into mem
-			kernel->virtualDisk->ReadSector(pageTable[vpn].virtualPage, buffer);
-			bcopy( buffer, &mainMemory[curPhyPage * PageSize], PageSize);
-		}
-		//select victim
-		else{
-			char *buffer1, *buffer2;
-			buffer1 = new char[PageSize];
-			buffer2 = new char[PageSize];
+                  
+                      }
 
-			//get victim
-			switch(pageType){
-				case FIFO:
-					printf("%d\n", fifo);
-					victim = fifo % NumPhysPages;
-					fifo++;
-					break;
-				case LRU:
-					break;
-				default:
-					cerr << "Unexpected page replace type " << pageType << "\n";
-					break;
-			}
 
-			printf("victim : %u\n", victim);
-			//swap victim & virtual page data
-			bcopy( &mainMemory[victim * PageSize], buffer1, PageSize);
-			kernel->virtualDisk->ReadSector(pageTable[vpn].virtualPage, buffer2);
-			kernel->virtualDisk->WriteSector(pageTable[vpn].virtualPage, buffer1);
-			bcopy( buffer2, &mainMemory[victim * PageSize], PageSize);
-			//update pageTable & mainPage
-			pageTable[vpn].physicalPage = victim;
-			pageTable[vpn].valid = true;
-			kernel->machine->mainPage[victim]->virtualPage = pageTable[vpn].virtualPage;
-			kernel->machine->mainPage[victim]->valid = false;
-			kernel->machine->mainPage[victim] = &pageTable[vpn];
-		}
-		
-	    // return PageFaultException;
+	    //return PageFaultException;
 	}
 	entry = &pageTable[vpn];
     } else {

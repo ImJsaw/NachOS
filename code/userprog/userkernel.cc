@@ -10,7 +10,6 @@
 #include "synchconsole.h"
 #include "userkernel.h"
 #include "synchdisk.h"
-#include <stdlib.h>
 
 //----------------------------------------------------------------------
 // UserProgKernel::UserProgKernel
@@ -44,10 +43,6 @@ UserProgKernel::UserProgKernel(int argc, char **argv)
 		cout << "	./nachos -s : Print machine status during the machine is on." << endl;
 		cout << "	./nachos -e file1 -e file2 : executing file1 and file2."  << endl;
 	}
-	else if (strcmp(argv[i], "-prio") == 0) {
-		prio[execfileNum] = atoi(argv[i + 1]);
-		cout << execfileNum << "'s prio: " << argv[i + 1] << endl;
-	}
     }
 }
 
@@ -63,10 +58,11 @@ UserProgKernel::Initialize()
 
     machine = new Machine(debugUserProg);
     fileSystem = new FileSystem();
-	virtualDisk = new SynchDisk("New Virtual Disk");
+    vm_Disk = new SynchDisk("New Disk");//to save the page which the main memoey don't have enough memory to save
 #ifdef FILESYS
     synchDisk = new SynchDisk("New SynchDisk");
 #endif // FILESYS
+   
 }
 
 //----------------------------------------------------------------------
@@ -92,12 +88,6 @@ void
 ForkExecute(Thread *t)
 {
 	t->space->Execute(t->getName());
-	// while (t->getBurstTime() > 0) {
- //        t->setBurstTime(t->getBurstTime() - 1);
-	// 	printf("%s: %d\n", t->getName(), t->getBurstTime());
- //        //kernel->currentThread->Yield();
-	// 	interrupt->OneTick();
- //    } 
 }
 
 void
@@ -109,7 +99,6 @@ UserProgKernel::Run()
 		{
 		t[n] = new Thread(execfile[n]);
 		t[n]->space = new AddrSpace();
-		t[n]->setPriority(prio[n]);
 		t[n]->Fork((VoidFunctionPtr) &ForkExecute, (void *)t[n]);
 		cout << "Thread " << execfile[n] << " is executing." << endl;
 		}

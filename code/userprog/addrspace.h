@@ -45,6 +45,8 @@ private:
 	void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
 
+	bool pt_is_load;
+
 };
 
 #endif // ADDRSPACE_H

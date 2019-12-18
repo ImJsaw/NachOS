@@ -243,6 +243,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 			//get victim
 			switch(pageType){
 				case FIFO:
+					printf("%d\n", fifo);
 					victim = fifo % NumPhysPages;
 					fifo++;
 					break;
@@ -253,7 +254,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 					break;
 			}
 
-			printf("victim : %u", victim);
+			printf("victim : %u\n", victim);
 			//swap victim & virtual page data
 			bcopy( &mainMemory[victim * PageSize], buffer1, PageSize);
 			kernel->virtualDisk->ReadSector(pageTable[vpn].virtualPage, buffer2);
